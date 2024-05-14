@@ -1,0 +1,94 @@
+module filter(
+	input clk,
+	input rst,
+	input switch,
+	
+	input [7:0] red_i,
+	input [7:0] green_i,
+	input [7:0] blue_i,
+	
+	input cam_done_i,
+	
+	output reg [7:0] red_o,
+	output reg [7:0] green_o,
+	output reg [7:0] blue_o,
+	
+	output done_o1,
+	output done_o2,
+	output done_o3
+);
+wire [7:0] red;
+wire [7:0] green;
+wire [7:0] blue;
+wire [7:0] sobel_grayscale_i;
+wire sobel_grayscale_i_done;
+
+sobel_kernel SOBEL_KERNEL(
+	.clk(clk),
+	.rst(rst),
+	
+	.grayscale_i(cam_red_i),
+	.done_i(cam_done_i),
+	
+	.grayscale_o(red),
+	.done_o(sobel_done_o1)
+);
+
+sobel_kernel SOBEL_KERNEL1(
+	.clk(clk),
+	.rst(rst),
+	
+	.grayscale_i(cam_green_i),
+	.done_i(cam_done_i),
+	
+	.grayscale_o(green),
+	.done_o(sobel_done_o2)
+);
+sobel_kernel SOBEL_KERNEL2(
+	.clk(clk),
+	.rst(rst),
+	
+	.grayscale_i(cam_blue_i),
+	.done_i(cam_done_i),
+	
+	.grayscale_o(blue),
+	.done_o(sobel_done_o3)
+);
+
+rgb_to_grayscale RGB_TO_GRAYSCALE(
+	.clk(clk),
+	.rst(rst),
+	.red_i(cam_red_i),
+	.green_i(cam_green_i),
+	.blue_i(cam_blue_i),
+	
+	.done_i(cam_done_i),
+	
+	.grayscale_o(sobel_grayscale_i),
+	.done_o(sobel_grayscale_i_done) 
+);
+
+
+ 
+always@(*)begin
+	case(switch) 
+		1'b0: begin
+			sobel_red_o <= sobel_grayscale_i;
+			sobel_green_o <= sobel_grayscale_i;
+			sobel_blue_o <= sobel_grayscale_i;
+		end
+		1'b1: begin
+			sobel_red_o <= red;
+			sobel_green_o <= red;
+			sobel_blue_o <= red;
+		end
+		default : begin
+			sobel_red_o <= sobel_grayscale_i;
+			sobel_green_o <= sobel_grayscale_i;
+			sobel_blue_o <= sobel_grayscale_i;
+		end
+	endcase
+end 
+
+
+endmodule
